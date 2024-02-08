@@ -11,7 +11,7 @@ import SwiftUI
 struct MoneyManagerApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            DashboardView(viewModel: DashboardDefaultViewModel())
         }
     }
 }
