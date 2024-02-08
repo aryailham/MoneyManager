@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		19659AD92B74C7EC00158FF0 /* MoneyManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19659AD82B74C7EC00158FF0 /* MoneyManagerApp.swift */; };
-		19659ADB2B74C7EC00158FF0 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19659ADA2B74C7EC00158FF0 /* ContentView.swift */; };
 		19659ADD2B74C7EF00158FF0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 19659ADC2B74C7EF00158FF0 /* Assets.xcassets */; };
 		19659AE02B74C7EF00158FF0 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 19659ADF2B74C7EF00158FF0 /* Preview Assets.xcassets */; };
 		19659AEC2B74CA7300158FF0 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19659AEB2B74CA7300158FF0 /* DashboardView.swift */; };
@@ -19,7 +18,6 @@
 /* Begin PBXFileReference section */
 		19659AD52B74C7EC00158FF0 /* MoneyManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MoneyManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		19659AD82B74C7EC00158FF0 /* MoneyManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyManagerApp.swift; sourceTree = "<group>"; };
-		19659ADA2B74C7EC00158FF0 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		19659ADC2B74C7EF00158FF0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		19659ADF2B74C7EF00158FF0 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		19659AEB2B74CA7300158FF0 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -111,7 +109,6 @@
 			isa = PBXGroup;
 			children = (
 				19659AD82B74C7EC00158FF0 /* MoneyManagerApp.swift */,
-				19659ADA2B74C7EC00158FF0 /* ContentView.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -210,7 +207,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				19659ADB2B74C7EC00158FF0 /* ContentView.swift in Sources */,
 				19659AF32B74DAAB00158FF0 /* Wishlist.swift in Sources */,
 				19659AEC2B74CA7300158FF0 /* DashboardView.swift in Sources */,
 				19659AD92B74C7EC00158FF0 /* MoneyManagerApp.swift in Sources */,
