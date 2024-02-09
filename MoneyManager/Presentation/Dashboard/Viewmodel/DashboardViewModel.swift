@@ -11,7 +11,7 @@ import SwiftUI
 protocol DashboardViewModelInput {
     func getCurrentWishlist()
     func delete(_ indexSet: IndexSet)
-    func purchase(_ selectedWishlist: Wishlist)
+    func purchase()
 }
 
 protocol DashboardViewModelOutput {
@@ -29,7 +29,8 @@ class DashboardDefaultViewModel: DashboardViewModel {
     @Published var currentStreak: Int = 0
     @Published var wishlist: [Wishlist] = []
     
-    @State var data: String = ""
+    @Published var selectedWishlist: Wishlist?
+
     
     init(repository: WishlistRepository = WishlistDefaultRepository()) {
         self.repository = repository
@@ -56,9 +57,9 @@ class DashboardDefaultViewModel: DashboardViewModel {
             repository.delete(id: IDToDelete) { isSuccess in
                 switch isSuccess {
                 case true:
-                    self.countTotalWishlistValue()
                     DispatchQueue.main.async {
                         self.wishlist.remove(atOffsets: indexSet)
+                        self.countTotalWishlistValue()
                     }
                 case false:
                     print("failed to delete")
@@ -78,11 +79,15 @@ class DashboardDefaultViewModel: DashboardViewModel {
         }
     }
     
-    func purchase(_ selectedWishlist: Wishlist) {
+    func purchase() {
+        guard let selectedWishlist = self.selectedWishlist else {
+            return
+        }
         repository.delete(id: selectedWishlist.id) { isSuccess in
             if isSuccess {
                 self.resetCounter()
                 self.getCurrentWishlist()
+                self.selectedWishlist = nil
             }
         }
     }
