@@ -7,15 +7,18 @@
 
 import SwiftUI
 
+enum ShowedDashboardPopUp {
+    case add
+    case purchase
+}
+
 struct DashboardView: View {
     
-    @ObservedObject var viewModel: DashboardDefaultViewModel  
+    @ObservedObject var viewModel: DashboardDefaultViewModel
     
     @State var shouldRefresh: Bool = false
     @State var isAddWishlistShown: Bool = false
-
-    @State var selectedWishlist: Wishlist?
-
+    
     init(viewModel: DashboardDefaultViewModel = DashboardDefaultViewModel()) {
         self.viewModel = viewModel
         viewModel.getCurrentWishlist()
@@ -30,7 +33,7 @@ struct DashboardView: View {
                     Spacer()
                 })
                 VStack(content: {
-                    if isAddWishlistShown {
+                    if isAddWishlistShown && viewModel.selectedWishlist == nil {
                         Spacer()
                         AddWishlistView(viewModel: AddWishlistDefaultViewModel(refresh: $shouldRefresh), shouldPresent: $isAddWishlistShown)
                             .padding(.top, 100)
@@ -40,9 +43,9 @@ struct DashboardView: View {
                             .ignoresSafeArea()
                     }
                     
-                    if let selectedWishlist = selectedWishlist {
+                    if let selectedWishlist = viewModel.selectedWishlist {
                         Spacer()
-                        BuyWishlistConfirmation(viewModel: self.viewModel, selectedWishlist: $selectedWishlist)
+                        ConfirmPurchaseView(viewModel: self.viewModel)
                             .padding(.top, 100)
                             .transition(.move(edge: .bottom))
                             .animation(.spring)
@@ -61,7 +64,9 @@ struct DashboardView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
-                        isAddWishlistShown.toggle()
+                        if viewModel.selectedWishlist == nil {
+                            isAddWishlistShown.toggle()
+                        }
                     }, label: {
                         Image(systemName: "plus")
                     })
@@ -80,9 +85,9 @@ struct DashboardView: View {
             
             List {
                 ForEach(viewModel.wishlist) { wish in
-                    MostExpensiveWishlistView(itemName: wish.name, itemPrice: "Rp \(wish.price)", daysPassedAfterAdded: wish.dateAdded)
+                    MostExpensiveWishlistView(itemName: wish.name, itemPrice: "Rp \(wish.price)", addedDate: wish.dateAdded, shouldPriceShowed: $shouldValueHidden)
                         .onTapGesture {
-                            selectedWishlist = wish
+                            viewModel.selectedWishlist = wish
                         }
                 }
                 .onDelete(perform: { indexSet in
@@ -93,25 +98,39 @@ struct DashboardView: View {
         }
     }
     
+    @State var shouldValueHidden: Bool = true
     var savingsHighlight: some View {
         ZStack(content: {
             RoundedRectangle(cornerRadius: 25.0)
                 .fill(.black)
             
             HStack {
-                VStack(alignment: .leading) {
-                    Text("Current wishlist value:")
-                        .font(.headline)
-                    Text(viewModel.currentWishlistValue)
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                        .padding(.bottom, 16)
+                VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading) {
+                        
+                        HStack(alignment: .center, content: {
+                            Text("Current wishlist value:")
+                                .font(.headline)
+                            Button(action: {
+                                shouldValueHidden.toggle()
+                            }, label: {
+                                Image(systemName: shouldValueHidden ? "eye.fill" : "eye.slash.fill")
+                                    .frame(height: .infinity, alignment: .center)
+                            })
+
+                        })
+                        Text(shouldValueHidden ? "Rp ******" : viewModel.currentWishlistValue)
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                    }
                     
-                    Text("Days since the last spendings:")
-                        .font(.headline)
-                    Text("\(viewModel.currentStreak) Day(s)")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    VStack(alignment: .leading) {
+                        Text("Days since the last spendings:")
+                            .font(.headline)
+                        Text("\(viewModel.currentStreak) Day(s)")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                    }
                 }
                 .padding(32)
                 Spacer()
@@ -123,83 +142,19 @@ struct DashboardView: View {
     }
 }
 
-struct BuyWishlistConfirmation: View {
-    @ObservedObject var viewModel: DashboardDefaultViewModel
-    @Binding var selectedWishlist: Wishlist?
-    
-    var body: some View {
-        ZStack(content: {
-            Color.white
-                .ignoresSafeArea()
-            
-            VStack(content: {
-                Text("Are you sure you want to purchase this items? this will reset your progress")
-                    .multilineTextAlignment(.center)
-                    .font(.title3)
-                    .padding(.bottom, 16)
-                
-                HStack(content: {
-                    Text("Price")
-                    Spacer()
-                    Text("Rp. 100000")
-                })
-                .padding(.bottom, 8)
-                HStack(content: {
-                    Text("Name")
-                    Spacer()
-                    Text("Gundam")
-                })
-                .padding(.bottom, 8)
-                HStack(content: {
-                    Text("Days spent to hold the urge")
-                    Spacer()
-                    Text("10 days")
-                })
-                .padding(.bottom, 16)
-                
-                Button("I no longer can hold the urge") {
-                    if let itemToPurchase = selectedWishlist {
-                        viewModel.purchase(itemToPurchase)
-                        selectedWishlist = nil
-                    }
-                }
-                .padding()
-                .padding(.horizontal, 16)
-                .foregroundColor(.white)
-                .background(
-                    Color.red
-                        .frame(width: .infinity, height: .infinity)
-                )
-                .cornerRadius(16.0)
-                
-                Button("I still can hold the urge") {
-                    selectedWishlist = nil
-                }
-                .padding()
-                .padding(.horizontal, 16)
-                .foregroundColor(.white)
-                .background(
-                    Color.green
-                        .frame(width: .infinity, height: .infinity)
-                )
-                .cornerRadius(16.0)
-
-            })
-            .padding()
-        })
-    }
-}
-
 struct MostExpensiveWishlistView: View {
+    
+    @Binding var shouldPriceShowed: Bool
     
     let itemName: String
     let itemPrice: String
-    let daysPassedAfterAdded: Date
+    let addedDate: Date
     
-    init(itemName: String, itemPrice: String, daysPassedAfterAdded: Date) {
+    init(itemName: String, itemPrice: String, addedDate: Date, shouldPriceShowed: Binding<Bool>) {
         self.itemName = itemName
         self.itemPrice = itemPrice
-        self.daysPassedAfterAdded = daysPassedAfterAdded
+        self.addedDate = addedDate
+        self._shouldPriceShowed = shouldPriceShowed
     }
     
     var body: some View {
@@ -211,11 +166,11 @@ struct MostExpensiveWishlistView: View {
                 VStack(alignment: .leading) {
                     Text(itemName)
                         .font(.title2)
-                    Text(itemPrice)
+                    Text(shouldPriceShowed ? "Rp ******" : itemPrice)
                         .font(.title2)
                 }
                 Spacer()
-                //                Text("\(daysPassedAfterAdded)")
+                Text("\(DateHelper().daysBetweenDate(from: addedDate, to: Date())) Day(s)")
             })
             .padding()
             .foregroundColor(.white)
