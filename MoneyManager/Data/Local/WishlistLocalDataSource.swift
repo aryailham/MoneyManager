@@ -11,6 +11,7 @@ import CoreData
 protocol WishlistLocalDataSource {
     func saveNewWishlist(_ newData: Wishlist)
     func getWishlist() -> [Wishlist]
+    func delete(id: UUID, completion: @escaping ((Bool) -> Void))
 }
 
 class WishlistCoreDataLocalDataSource: WishlistLocalDataSource {
@@ -35,7 +36,6 @@ class WishlistCoreDataLocalDataSource: WishlistLocalDataSource {
         let context = manager.persistentContainer.viewContext
 
         var wishlist: [Wishlist] = []
-//        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "WishlistEntity")
 
         do {
             let items = try context.fetch(WishlistEntity.fetchRequest())
@@ -50,5 +50,24 @@ class WishlistCoreDataLocalDataSource: WishlistLocalDataSource {
         }
         
         return wishlist
+    }
+    
+    func delete(id: UUID, completion: @escaping ((Bool) -> Void)) {
+        let context = manager.persistentContainer.viewContext
+
+        let fetch: NSFetchRequest<WishlistEntity> = WishlistEntity.fetchRequest()
+        fetch.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        
+        do {
+            let result = try context.fetch(fetch)
+            if let item = result.first {
+                context.delete(item)
+                try manager.saveContext()
+                completion(true)
+            }
+        } catch {
+            print("Error when delete wishlist: \(error.localizedDescription)")
+            completion(false)
+        }
     }
 }
