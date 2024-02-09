@@ -22,7 +22,7 @@ struct AddWishlistView: View {
     
     var body: some View {
         ZStack {
-            Color.white.ignoresSafeArea(.all)
+            Color.green.ignoresSafeArea(.all)
             
             VStack(content: {
                 Text("Add new wishlist")
