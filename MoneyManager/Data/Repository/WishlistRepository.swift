@@ -10,6 +10,7 @@ import Foundation
 protocol WishlistRepository {
     func saveNewWishlist(_ newData: Wishlist)
     func getWishlist() -> [Wishlist]
+    func delete(id: UUID, completion: @escaping ((Bool) -> Void))
 }
 
 class WishlistDefaultRepository: WishlistRepository {
@@ -25,5 +26,9 @@ class WishlistDefaultRepository: WishlistRepository {
     
     func getWishlist() -> [Wishlist] {
         local.getWishlist()
+    }
+    
+    func delete(id: UUID, completion: @escaping ((Bool) -> Void)) {
+        local.delete(id: id, completion: completion)
     }
 }
