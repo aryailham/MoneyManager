@@ -9,13 +9,15 @@ import SwiftUI
 
 struct DashboardView: View {
     
-    var viewModel: DashboardViewModel
+    @ObservedObject var viewModel: DashboardDefaultViewModel  
     
-    @AppStorage("currentWishlistValue") var currentWishlistValue: String = "Rp 3.000.000"
-    @AppStorage("currentDaysStreak") var currentDaysStreak: Int = 0
-    
-    init(viewModel: DashboardViewModel) {
+    @State var shouldRefresh: Bool = false
+    @State var isAddWishlistShown: Bool = false
+
+
+    init(viewModel: DashboardDefaultViewModel = DashboardDefaultViewModel()) {
         self.viewModel = viewModel
+        viewModel.getCurrentWishlist()
     }
     
     var body: some View {
@@ -26,17 +28,35 @@ struct DashboardView: View {
                     mostExpensiveWishlist
                     Spacer()
                 })
+                VStack(content: {
+                    if isAddWishlistShown {
+                        Spacer()
+                        AddWishlistView(viewModel: AddWishlistDefaultViewModel(refresh: $shouldRefresh), shouldPresent: $isAddWishlistShown)
+                            .padding(.top, 100)
+                            .transition(.move(edge: .bottom))
+                            .animation(.spring)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .ignoresSafeArea()
+                    }
+                }).zIndex(3.0)
             }
+            .onChange(of: shouldRefresh, perform: { value in
+                if shouldRefresh {
+                    viewModel.getCurrentWishlist()
+                    shouldRefresh = false
+                }
+            })
             .navigationTitle("Dashboard")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button(action: {
-                        // TODO: - open add new wishlist page
+                        isAddWishlistShown.toggle()
                     }, label: {
                         Image(systemName: "plus")
                     })
                 }
             }
+            
         }
     }
     
@@ -47,14 +67,15 @@ struct DashboardView: View {
                 .fontWeight(.bold)
                 .padding(.horizontal, 16)
             
-            ScrollView {
-                LazyVStack {
-                    ForEach(viewModel.wishlist) { wish in
-                        MostExpensiveWishlistView(itemName: wish.name, itemPrice: "Rp \(wish.price)", daysPassedAfterAdded: wish.dateAdded)
-                    }
+            List {
+                ForEach(viewModel.wishlist) { wish in
+                    MostExpensiveWishlistView(itemName: wish.name, itemPrice: "Rp \(wish.price)", daysPassedAfterAdded: wish.dateAdded)
                 }
-                .listStyle(.plain)
+                .onDelete(perform: { indexSet in
+                    viewModel.delete(indexSet)
+                })
             }
+            .listStyle(.plain)
         }
     }
     
@@ -62,24 +83,22 @@ struct DashboardView: View {
         ZStack(content: {
             RoundedRectangle(cornerRadius: 25.0)
                 .fill(.black)
-                .frame(height: .infinity)
             
             HStack {
                 VStack(alignment: .leading) {
                     Text("Current wishlist value:")
                         .font(.headline)
-                    Text(currentWishlistValue)
+                    Text(viewModel.currentWishlistValue)
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .padding(.bottom, 16)
                     
                     Text("Days since the last spendings:")
                         .font(.headline)
-                    Text("\(currentDaysStreak) Day(s)")
+                    Text("\(viewModel.currentStreak) Day(s)")
                         .font(.largeTitle)
                         .fontWeight(.bold)
                 }
-                .frame(width: .infinity)
                 .padding(32)
                 Spacer()
             }
@@ -120,7 +139,6 @@ struct MostExpensiveWishlistView: View {
             .padding()
             .foregroundColor(.white)
         }
-        .padding(.horizontal, 16)
         .padding(.bottom, 8)
     }
 }

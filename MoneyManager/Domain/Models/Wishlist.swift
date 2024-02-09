@@ -8,13 +8,13 @@
 import Foundation
 
 struct Wishlist: Identifiable {
-    let id: String
+    let id: UUID
     let name: String
     let price: Int
     let dateAdded: Date
     
-    init(name: String, price: Int, dateAdded: Date) {
-        id = UUID().uuidString
+    init(id: UUID = UUID(), name: String, price: Int, dateAdded: Date) {
+        self.id = id
         self.name = name
         self.price = price
         self.dateAdded = dateAdded
