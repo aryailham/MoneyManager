@@ -14,6 +14,7 @@ struct DashboardView: View {
     @State var shouldRefresh: Bool = false
     @State var isAddWishlistShown: Bool = false
 
+    @State var selectedWishlist: Wishlist?
 
     init(viewModel: DashboardDefaultViewModel = DashboardDefaultViewModel()) {
         self.viewModel = viewModel
@@ -32,6 +33,16 @@ struct DashboardView: View {
                     if isAddWishlistShown {
                         Spacer()
                         AddWishlistView(viewModel: AddWishlistDefaultViewModel(refresh: $shouldRefresh), shouldPresent: $isAddWishlistShown)
+                            .padding(.top, 100)
+                            .transition(.move(edge: .bottom))
+                            .animation(.spring)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .ignoresSafeArea()
+                    }
+                    
+                    if let selectedWishlist = selectedWishlist {
+                        Spacer()
+                        BuyWishlistConfirmation(viewModel: self.viewModel, selectedWishlist: $selectedWishlist)
                             .padding(.top, 100)
                             .transition(.move(edge: .bottom))
                             .animation(.spring)
@@ -70,6 +81,9 @@ struct DashboardView: View {
             List {
                 ForEach(viewModel.wishlist) { wish in
                     MostExpensiveWishlistView(itemName: wish.name, itemPrice: "Rp \(wish.price)", daysPassedAfterAdded: wish.dateAdded)
+                        .onTapGesture {
+                            selectedWishlist = wish
+                        }
                 }
                 .onDelete(perform: { indexSet in
                     viewModel.delete(indexSet)
@@ -106,6 +120,73 @@ struct DashboardView: View {
         .fixedSize(horizontal: false, vertical: true)
         .padding(.horizontal, 16)
         .foregroundColor(.white)
+    }
+}
+
+struct BuyWishlistConfirmation: View {
+    @ObservedObject var viewModel: DashboardDefaultViewModel
+    @Binding var selectedWishlist: Wishlist?
+    
+    var body: some View {
+        ZStack(content: {
+            Color.white
+                .ignoresSafeArea()
+            
+            VStack(content: {
+                Text("Are you sure you want to purchase this items? this will reset your progress")
+                    .multilineTextAlignment(.center)
+                    .font(.title3)
+                    .padding(.bottom, 16)
+                
+                HStack(content: {
+                    Text("Price")
+                    Spacer()
+                    Text("Rp. 100000")
+                })
+                .padding(.bottom, 8)
+                HStack(content: {
+                    Text("Name")
+                    Spacer()
+                    Text("Gundam")
+                })
+                .padding(.bottom, 8)
+                HStack(content: {
+                    Text("Days spent to hold the urge")
+                    Spacer()
+                    Text("10 days")
+                })
+                .padding(.bottom, 16)
+                
+                Button("I no longer can hold the urge") {
+                    if let itemToPurchase = selectedWishlist {
+                        viewModel.purchase(itemToPurchase)
+                        selectedWishlist = nil
+                    }
+                }
+                .padding()
+                .padding(.horizontal, 16)
+                .foregroundColor(.white)
+                .background(
+                    Color.red
+                        .frame(width: .infinity, height: .infinity)
+                )
+                .cornerRadius(16.0)
+                
+                Button("I still can hold the urge") {
+                    selectedWishlist = nil
+                }
+                .padding()
+                .padding(.horizontal, 16)
+                .foregroundColor(.white)
+                .background(
+                    Color.green
+                        .frame(width: .infinity, height: .infinity)
+                )
+                .cornerRadius(16.0)
+
+            })
+            .padding()
+        })
     }
 }
 
